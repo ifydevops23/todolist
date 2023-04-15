@@ -1,0 +1,43 @@
+---
+- name: Install Dynamic website across all specified hosts
+  hosts: webservers
+  become: true
+  tasks:
+  - name: Update ec2 instances
+    yum:
+      name: "*"
+      state: latest
+      update_cache: yes
+  - name: Install httpd
+    yum:
+      name: httpd
+      state: latest
+  - name: Change directory to /var/www/html
+    shell: cd /var/www/html
+  - name: Download web folder from url
+    get_url:
+      url: https://github.com/ifydevops23/todolist/archive/main.zip
+      dest: /var/www/html/
+  - name: Unzip zipped folder
+    unarchive:
+      src: /var/www/html/todolist-main.zip
+      dest: /var/www/html
+      remote_src: yes
+  - name: Copy files from unzipped folder
+    copy:
+      src: /var/www/html/todolist-main/
+      dest: /var/www/html
+      remote_src: yes
+  - name: Delete zip folder
+    file:
+      path: /var/www/html/todolist-main.zip
+      state: absent
+  - name: Delete todolist-main folder
+    file:
+      path: /var/www/html/todolist-main
+      state: absent
+  - name: Enable httpd service
+    service:
+      name: httpd
+      enabled: yes
+      state: started
